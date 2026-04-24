@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: fabricsync_db
+    restart: always
+    environment:
+      POSTGRES_USER: user_admin
+      POSTGRES_PASSWORD: Taki2399
+      POSTGRES_DB: fabricsync
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  
+  api:
+    build: ./backend          # Tells Docker where the Dockerfile is
+    env_file:
+      - ./backend/.env        # Points to the env file inside the folder
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
