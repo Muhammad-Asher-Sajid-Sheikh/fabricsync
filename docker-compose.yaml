@@ -13,9 +13,14 @@ services:
       - postgres_data:/var/lib/postgresql/data
   
   api:
-    build: ./backend          # Tells Docker where the Dockerfile is
+    build:
+      context: ./backend      # Points to your backend folder
+      dockerfile: Dockerfile  # Looks for the Dockerfile inside it
+      network: host           # Bypasses the Windows network bottleneck
+    ports:
+      - "3000:3000"           # Exposes your API port to your local browser
     env_file:
-      - ./backend/.env        # Points to the env file inside the folder
+      - ./backend/.env
     depends_on:
       - db
 
