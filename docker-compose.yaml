@@ -11,18 +11,31 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-  
+    # Tells Docker how to verify Postgres is ready to accept connections
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user_admin -d fabricsync"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   api:
     build:
-      context: ./backend      # Points to your backend folder
-      dockerfile: Dockerfile  # Looks for the Dockerfile inside it
-      network: host           # Bypasses the Windows network bottleneck
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
-      - "3000:3000"           # Exposes your API port to your local browser
+      - "3000:3000"
     env_file:
       - ./backend/.env
     depends_on:
-      - db
+      db:
+        condition: service_healthy # The API will wait to start until the DB healthcheck passes
+    # Tells Docker to ping your new API health endpoint periodically
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s # Gives the API 10 seconds to boot up before checking health
 
 volumes:
   postgres_data:
